@@ -1,4 +1,4 @@
-import parseopt, parseutils, strutils, os, json, algorithm, times, math,
+import parseopt, parseutils, strutils, os, json, algorithm, times, math, re,
   strformat
 
 type CmdInfo = tuple
@@ -198,25 +198,52 @@ if "print".startsWith(paramStr(1)):
         let
           dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
         str &= &"{dur:>7.2f}" & "s\t"
+    if optConfig.strip:
+      str = str.replace(re"\x1b\[[0-9;]*m")
     stdout.write(str & lookup(cmd.sidx, cmd.cidx, fkInp).strVal)
 
 elif "output".startsWith(paramStr(1)):
-  if paramCount() != 4:
-    echo "This commands takes exactly 3 arguments"
-    quit QuitFailure
-  # Find user's history directory
-  let filePath = path(paramStr(2), paramStr(3))
   var
     command: JsonNode
-    output: string
+    user: string
+    sid: string
     cidx: int
+    output: string
+    isFirstIter = true
+    argIdx: int
+    stripOpt: bool
+
+  for kind, key, val in getopt(shortNoVal = {'n'}, longNoVal = @["nocolor"]):
+    if isFirstIter:
+      isFirstIter = false
+      continue
+    case kind
+    of cmdShortOption, cmdLongOption:
+      case key
+      of "nocolor", "n":
+        stripOpt = true
+      else:
+        echo "Error while parsing option"
+        quit QuitFailure
+    of cmdArgument:
+      case argIdx
+      of 0: user = key
+      of 1: sid = key
+      of 2:
+        try:
+          cidx = parseInt(key)
+        except ValueError:
+          echo "Could not parse command index"
+          quit QuitFailure
+      else:
+        echo "This command takes exactly 3 arguments"
+        quit QuitFailure
+      inc argIdx
+    of cmdEnd:
+      assert(false)
+
   try:
-    cidx = parseInt(paramStr(4))
-  except ValueError:
-    echo "Could not parse command index"
-    quit QuitFailure
-  try:
-    command = parseFile(filePath)["data"]["cmds"][cidx]
+    command = parseFile(path(user, sid))["data"]["cmds"][cidx]
   except:
     echo "Json error"
     quit QuitFailure
@@ -226,20 +253,53 @@ elif "output".startsWith(paramStr(1)):
     echo "Output of command not found (maybe output logging was not " &
       "enabled in xonsh at the time?)"
     quit QuitFailure
+
+  if stripOpt:
+    output = output.replace(re"\x1b\[[0-9;]*m")
+
   echo output
 
 elif "enviroment".startsWith(paramStr(1)):
-  if paramCount() != 3:
-    echo "This commands takes exactly 2 arguments"
-    quit QuitFailure
-  let filePath = path(paramStr(2), paramStr(3))
-  var enviroment: JsonNode
+  var
+    enviroment: JsonNode
+    user: string
+    sid: string
+    isFirstIter = true
+    argIdx: int
+    minifyOpt: bool
+
+  for kind, key, val in getopt(shortNoVal = {'m'}, longNoVal = @["minify"]):
+    if isFirstIter:
+      isFirstIter = false
+      continue
+    case kind
+    of cmdShortOption, cmdLongOption:
+      case key
+      of "minify", "m":
+        minifyOpt = true
+      else:
+        echo "Error while parsing option"
+        quit QuitFailure
+    of cmdArgument:
+      case argIdx
+      of 0: user = key
+      of 1: sid = key
+      else:
+        echo "This command takes exactly 2 arguments"
+        quit QuitFailure
+      inc argIdx
+    of cmdEnd:
+      assert(false)
+
   try:
-    enviroment = parseFile(filePath)["data"]["env"]
+    enviroment = parseFile(path(user, sid))["data"]["env"]
   except:
     echo "Json error"
     quit QuitFailure
-  echo pretty(enviroment)
+  if minifyOpt:
+    echo enviroment
+  else:
+    echo pretty(enviroment)
 
 elif "timestamps".startsWith(paramStr(1)):
   if paramCount() != 3:

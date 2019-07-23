@@ -68,7 +68,7 @@ All filtering commands require arguments.
 | -t | --till | date/time | only show command
 | -s | --session | session id | only show commands ran during [session]
 
-There is also an option to strip colors. It accepts no arguments.
+There is also an option to strip colors. It accepts no arguments:
 
 | Short | Long | Meaning
 |-------|------|----------
@@ -80,9 +80,21 @@ Takes 3 mandatory arguments: user, session id, command index (collectively they
 map to a unique command); and writes to stdout what was written to stdout and
 stderr (by the command) when it was executed.
 
+There is one option available which accepts no arguments:
+
+| Short | Long | Meaning
+|-------|------|----------
+| -n | --nocolor | strips the output free of ascii color escape sequences
+
 ## `enviroment`
 Takes 2 mandatory argument: user, session id; and prints the *initial* enviroment
 of the corresponding session in prettified json.
+
+There is one option available which accepts no arguments:
+
+| Short | Long | Meaning
+|-------|------|----------
+| -m | --minify | print the enviroment in minified json
 
 ## `timestamps`
 Takes 2 mandatory argument: user, session id; and prints the timestamps of the
@@ -102,8 +114,8 @@ session.
 ## Not implemented yet
 - [ ] Configuration system
 - [ ] Flexible input for `-from` and `-till` options of `print`
-- [ ] `--nocolor` option for `output` command
-- [ ] `--minify` option for `enviroment` command
+- [x] `--nocolor` option for `output` command
+- [x] `--minify` option for `enviroment` command
 
 ## Notes
 The program will obviously print commands according to the privilege of the
