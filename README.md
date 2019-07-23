@@ -100,5 +100,6 @@ session.
 	- Duration format
 
 ## Notes
-Not every feature described above is implemented. The project is currently
-incomplete. More features will be added too.
+The program will obviously print commands according to the privilege of the
+user that ran the command. For example running the command as a user other
+than root will not print the commands ran by root.
