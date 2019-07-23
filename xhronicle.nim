@@ -3,7 +3,7 @@ import parseopt, parseutils, strutils, os, json, algorithm, times, math,
 
 type CmdInfo = tuple
   ts: float
-  sid, idx: int
+  sidx, cidx: int
 
 const
   xonfig = [
@@ -41,38 +41,49 @@ type
     of fkDur: duration: float
     of fkEnv: env: JsonNode
 
-proc lookup(sid, idx: int, what: FieldKind): Field =
+proc lookup(sidx, cidx: int, what: FieldKind): Field =
   try:
     case what
     of fkInp:
-      let input = getStr(sessions[sid][1]["cmds"][idx]["inp"])
+      let input = getStr(sessions[sidx][1]["cmds"][cidx]["inp"])
       result = Field(kind: fkInp, strVal: input)
     of fkOut:
-      let output = getStr(sessions[sid][1]["cmds"][idx]["out"])
+      let output = getStr(sessions[sidx][1]["cmds"][cidx]["out"])
       result = Field(kind: fkInp, strVal: output)
     of fkEnv:
-      result = Field(kind: fkEnv, env: sessions[sid][1]["env"])
+      result = Field(kind: fkEnv, env: sessions[sidx][1]["env"])
     of fkUser:
-      let user = sessions[sid][0]
+      let user = sessions[sidx][0]
       result = Field(kind: fkUser, strVal: user)
     of fkId:
-      let id = getStr(sessions[sid][1]["sessionid"])
+      let id = getStr(sessions[sidx][1]["sessionid"])
       result = Field(kind: fkId, strVal: id)
     of fkRtn:
-      let rtn = getInt(sessions[sid][1]["cmds"][idx]["rtn"])
+      let rtn = getInt(sessions[sidx][1]["cmds"][cidx]["rtn"])
       result = Field(kind: fkRtn, intVal: rtn)
     of fkBeg:
-      let ts = sessions[sid][1]["cmds"][idx]["ts"]
+      let ts = sessions[sidx][1]["cmds"][cidx]["ts"]
       result = Field(kind: fkBeg, time: initTime(ts[0]))
     of fkEnd:
-      let ts = sessions[sid][1]["cmds"][idx]["ts"]
+      let ts = sessions[sidx][1]["cmds"][cidx]["ts"]
       result = Field(kind: fkEnd, time: initTime(ts[1]))
     of fkDur:
-      let ts = sessions[sid][1]["cmds"][idx]["ts"]
+      let ts = sessions[sidx][1]["cmds"][cidx]["ts"]
       let dur = getFloat(ts[1]) - getFloat(ts[0])
       result = Field(kind: fkDur, duration: dur)
   except:
     discard # XXX: log error
+
+proc path(user, sid: string): string =
+  var filePath: string
+  for x in xonfig:
+    if x.name == user:
+      filePath = x.path
+      break
+  if filePath == "":
+    echo "User not found"
+    quit QuitFailure
+  result = filePath / "xonsh-" & sid & ".json"
 
 if "print".startsWith(paramStr(1)):
   type
@@ -145,14 +156,14 @@ if "print".startsWith(paramStr(1)):
   for entry in xonfig:
     if optConfig.session.flag:
       try:
-        let file = entry.path / "xonsh-" & optConfig.session.sid & ".json"
-        sessions.add((entry.name, parseFile(file)["data"]))
+        let filePath = entry.path / "xonsh-" & optConfig.session.sid & ".json"
+        sessions.add((entry.name, parseFile(filePath)["data"]))
       except:
         discard # XXX: log error
     else:
-      for file in walkFiles(entry.path / "*.json"):
+      for filePath in walkFiles(entry.path / "*.json"):
         try:
-          sessions.add((entry.name, parseFile(file)["data"]))
+          sessions.add((entry.name, parseFile(filePath)["data"]))
         except:
           discard # XXX: log error
 
@@ -171,48 +182,41 @@ if "print".startsWith(paramStr(1)):
     for p in optConfig.print:
       case p.option
       of poUser:
-        str &= lookup(cmd.sid, cmd.idx, fkUser).strVal & "\t"
+        str &= lookup(cmd.sidx, cmd.cidx, fkUser).strVal & "\t"
       of poId:
-        str &= lookup(cmd.sid, cmd.idx, fkId).strVal & "[" & &"{cmd.idx:03}" & "]\t"
+        str &= lookup(cmd.sidx, cmd.cidx, fkId).strVal & "[" &
+          &"{cmd.cidx:03}" & "]\t"
       of poRtn:
-        str &= $lookup(cmd.sid, cmd.idx, fkRtn).intVal & "\t"
+        str &= $lookup(cmd.sidx, cmd.cidx, fkRtn).intVal & "\t"
       of poBeg:
-        let beg = lookup(cmd.sid, cmd.idx, fkBeg).time
+        let beg = lookup(cmd.sidx, cmd.cidx, fkBeg).time
         str &= beg.format(defaultTimePrintFormat) & "\t"
       of poEnd:
-        let endd = lookup(cmd.sid, cmd.idx, fkEnd).time
+        let endd = lookup(cmd.sidx, cmd.cidx, fkEnd).time
         str &= endd.format(defaultTimePrintFormat) & "\t"
       of poDur:
         let
-          dur = lookup(cmd.sid, cmd.idx, fkDur).duration
+          dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
         str &= &"{dur:>7.2f}" & "s\t"
-    stdout.write(str & lookup(cmd.sid, cmd.idx, fkInp).strVal)
+    stdout.write(str & lookup(cmd.sidx, cmd.cidx, fkInp).strVal)
 
 elif "output".startsWith(paramStr(1)):
   if paramCount() != 4:
     echo "This commands takes exactly 3 arguments"
     quit QuitFailure
   # Find user's history directory
-  var path: string
-  for x in xonfig:
-    if x.name == paramStr(2):
-      path = x.path
-      break
-  if path == "":
-    echo "User not found"
-    quit QuitFailure
-  let file = path / "xonsh-" & paramStr(3) & ".json"
+  let filePath = path(paramStr(2), paramStr(3))
   var
     command: JsonNode
     output: string
-    idx: int
+    cidx: int
   try:
-    idx = parseInt(paramStr(4))
+    cidx = parseInt(paramStr(4))
   except ValueError:
     echo "Could not parse command index"
     quit QuitFailure
   try:
-    command = parseFile(file)["data"]["cmds"][idx]
+    command = parseFile(filePath)["data"]["cmds"][cidx]
   except:
     echo "Json error"
     quit QuitFailure
@@ -228,19 +232,10 @@ elif "enviroment".startsWith(paramStr(1)):
   if paramCount() != 3:
     echo "This commands takes exactly 2 arguments"
     quit QuitFailure
-  # Find user's history directory
-  var path: string
-  for x in xonfig:
-    if x.name == paramStr(2):
-      path = x.path
-      break
-  if path == "":
-    echo "User not found"
-    quit QuitFailure
-  let file = path / "xonsh-" & paramStr(3) & ".json"
+  let filePath = path(paramStr(2), paramStr(3))
   var enviroment: JsonNode
   try:
-    enviroment = parseFile(file)["data"]["env"]
+    enviroment = parseFile(filePath)["data"]["env"]
   except:
     echo "Json error"
     quit QuitFailure
@@ -250,19 +245,10 @@ elif "timestamps".startsWith(paramStr(1)):
   if paramCount() != 3:
     echo "This commands takes exactly 2 arguments"
     quit QuitFailure
-  # Find user's history directory
-  var path: string
-  for x in xonfig:
-    if x.name == paramStr(2):
-      path = x.path
-      break
-  if path == "":
-    echo "User not found"
-    quit QuitFailure
-  let file = path / "xonsh-" & paramStr(3) & ".json"
+  let filePath = path(paramStr(2), paramStr(3))
   var ts: JsonNode
   try:
-    ts = parseFile(file)["data"]["ts"]
+    ts = parseFile(filePath)["data"]["ts"]
   except:
     echo "Json error"
     quit QuitFailure
