@@ -33,10 +33,11 @@ manually or replay the session.
 json files or producing traditional history log files**.
 
 ## What exactly does xhronicle do?
-Xhronicle is a simple cli with the following 3 subcommands:
-- print [-u] [-i] [-r] [-t] [-s] [since] [until]
+Xhronicle is a simple cli with the following subcommands:
+- print [-u] [-i] [-r] [-b] [-e] [d]
 - output \<session id\> \<command index\> [--nocolor]
 - enviroment \<session id\> [--minify]
+- timestamps \<session id\>
 
 You don't have to type the whole subcommand. For example `xhronicle p`,
 `xhronicle pri` and `xhronicle print` are all equivelant.
