@@ -1,21 +1,58 @@
-import parseopt, parseutils, strutils, os, json, algorithm, times, math, re,
-  strformat
+import
+  os, streams, algorithm, math, re, parseopt, parsecfg, json, times,
+  parseutils, strutils, strformat
 
 type CmdInfo = tuple
   ts: float
   sidx, cidx: int
 
-const
-  xonfig = [
-    (name: "root", path: "/root/.local/share/xonsh"),
-    (name: "sealmove", path: "/home/sealmove/.local/share/xonsh")
-  ]
-  defaultTimePrintFormat = "dd MMM YYYY hh:mm:ss"
-  defaultTimeParseFormat = "yyyy-M-d-h:m:s"
-
 var
+  xonfig = getConfigDir() / "xhronicle" / "config"
+  currSection: string
+  users: seq[tuple[name, path: string]]
+  printTimeFormat, parseTimeFormat: string
   sessions: seq[tuple[user: string, data: JsonNode]]
   commands: seq[CmdInfo]
+
+if existsFile(xonfig):
+  var
+    f = newFileStream(xonfig, fmRead)
+    p: CfgParser
+  open(p, f, xonfig)
+  while true:
+    var e = next(p)
+    case e.kind
+    of cfgEof: break
+    of cfgSectionStart:
+      currSection = e.section
+      echo("new section: " & e.section)
+    of cfgKeyValuePair:
+      case currSection
+      of "Users":
+        users.add((e.key, e.value))
+      of "Time Format":
+        case e.key
+        of "print":
+          printTimeFormat = e.value
+        of "parse":
+          parseTimeFormat = e.value
+        else:
+          echo "Unknown config option"
+          quit QuitFailure
+      else:
+        echo "Unknown config section"
+        quit QuitFailure
+      echo("key-value-pair: " & e.key & ": " & e.value)
+    of cfgOption:
+      echo("command: " & e.key & ": " & e.value)
+    of cfgError:
+      echo(e.msg)
+  close(p)
+else:
+  echo "Using default configuration"
+  users.add((getEnv("USER"), getHomeDir() / ".local/share/xonsh"))
+  printTimeFormat = "dd MMM YYYY hh:mm:ss"
+  parseTimeFormat = "yyyy-M-d-h:m:s"
 
 proc initTime(time: JsonNode): Time =
   let (sec, nanosec) = splitDecimal(getFloat(time))
@@ -76,9 +113,9 @@ proc lookup(sidx, cidx: int, what: FieldKind): Field =
 
 proc path(user, sid: string): string =
   var filePath: string
-  for x in xonfig:
-    if x.name == user:
-      filePath = x.path
+  for u in users:
+    if u.name == user:
+      filePath = u.path
       break
   if filePath == "":
     echo "User not found"
@@ -124,9 +161,9 @@ if "print".startsWith(paramStr(1)):
       of "session", "s":
         optConfig.session = (true, val)
       of "from", "f":
-        optConfig.fromm = parseTime(val, defaultTimeParseFormat, local())
+        optConfig.fromm = parseTime(val, parseTimeFormat, local())
       of "till", "t":
-        optConfig.till = parseTime(val, defaultTimeParseFormat, local())
+        optConfig.till = parseTime(val, parseTimeFormat, local())
       of "user", "u":
         optConfig.print.add((i, poUser))
       of "id", "i":
@@ -153,7 +190,7 @@ if "print".startsWith(paramStr(1)):
   
   sort(optConfig.print)
 
-  for entry in xonfig:
+  for entry in users:
     if optConfig.session.flag:
       try:
         let filePath = entry.path / "xonsh-" & optConfig.session.sid & ".json"
@@ -190,10 +227,10 @@ if "print".startsWith(paramStr(1)):
         str &= $lookup(cmd.sidx, cmd.cidx, fkRtn).intVal & "\t"
       of poBeg:
         let beg = lookup(cmd.sidx, cmd.cidx, fkBeg).time
-        str &= beg.format(defaultTimePrintFormat) & "\t"
+        str &= beg.format(printTimeFormat) & "\t"
       of poEnd:
         let endd = lookup(cmd.sidx, cmd.cidx, fkEnd).time
-        str &= endd.format(defaultTimePrintFormat) & "\t"
+        str &= endd.format(printTimeFormat) & "\t"
       of poDur:
         let
           dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
@@ -317,8 +354,8 @@ elif "timestamps".startsWith(paramStr(1)):
     endd = initTime(ts[1])
     dur = getFloat(ts[1]) - getFloat(ts[0])
   var str: string
-  str &= beg.format(defaultTimePrintFormat) & "\t"
-  str &= endd.format(defaultTimePrintFormat) & "\t"
+  str &= beg.format(printTimeFormat) & "\t"
+  str &= endd.format(printTimeFormat) & "\t"
   str &= &"({dur:.2f}" & "s)\t"
   echo str
 

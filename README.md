@@ -1,4 +1,4 @@
-# xhronicle: a xonsh history frontend (WIP)
+# xhronicle: a xonsh history frontend
 
 ## What is xonsh?
 Xonsh is a relatively new shell (2016) and it's amazing in many ways. First and
@@ -59,10 +59,8 @@ None of these options take arguments and they are **order-sensitive**!
 | -e | --end | date and time when the command ended execution
 | -d | --duration | duration of command execution in seconds
 
-The date and time are printed in the format `dd MMM YYYY hh:mm:ss`
-according to Nim's standard library [specification](https://nim-lang.org/docs/times.html). As soon as the configuration
-system is ready, you will be able to specify the format in it, so please look
-forward to it! :)
+The date and time are formated according to the config file (see [below](https://github.com/sealmove/xhronicle#configuration)).
+If no config file is provided, then `dd MMM YYYY hh:mm:ss` is used.
 
 ### filtering
 All filtering commands require arguments.
@@ -73,10 +71,10 @@ All filtering commands require arguments.
 | -t | --till | date/time | only show command
 | -s | --session | session id | only show commands ran during [session]
 
-date/time for `--from` and `--till` options must be in the format
-`yyyy-M-d-h:m:s` according to Nim's standard library
-[specification](https://nim-lang.org/docs/times.html). There is a plan for making this more flexible in the future
-so that it accepts a multitude of formats.
+date/time for `--from` and `--till` options must be formatted according to the
+config file. If no config file is provided, then `yyyy-M-d-h:m:s` is used.
+There is a plan for making this more flexible in the future so that it accepts
+a multitude of formats by default.
 
 There is also an option to strip colors. It accepts no arguments:
 
@@ -109,20 +107,43 @@ There is one option available which accepts no arguments:
 Takes 2 mandatory argument: user, session id; and prints the timestamps of the
 session.
 
+## Configuration
+**The file path must be `$XDG_CONFIG_HOME/.config/xhronicle/config`.
+<br/>
+If $XDG_CONFIG_HOME is not set, it defaults to `~/.config/`.**
+
+A simple configuration file is needed to specify the following:
+- Users' names and corresponding paths to the xonsh history directory
+- Timedate format for `--begin` and `--end` options of `print` command
+- Timedate format for `--from` and `--till` options of `print` command
+- Duration format (in the future)
+- Colors (in the future)
+
+A simple `.ini`-like format is used according to [this specification](https://nim-lang.org/docs/times.html).
+
+Example:
+``` ini
+[Users]
+root = "/root/.local/share/xonsh"
+sealmove = "/home/sealmove/.local/share/xonsh"
+ 
+[Time Format]
+print = "dd MMM YYYY hh:mm:ss"
+parse = "yyyy-M-d-h:m:s"
+```
+
 ## How to generate binary
 * Clone
 * [Install Nim](https://nim-lang.org/install.html)
 * Compile (`nim c -d:release -o:xhronicle xhronicle.nim`) 
 
-- a simple configuration file is needed to specify the following:
-	- Users' names and corresponding paths to the xonsh history directory
-	- Colors
-	- Timedate format
-	- Duration format
-
-## Not implemented yet
-- [ ] Configuration system
+## Roadmap
+- [ ] A help subcommand
+- [ ] Better error messages
+- [ ] Colored output for `print`
+- [ ] Custom duration format
 - [ ] Flexible input for `--from` and `--till` options of `print`
+- [x] Configuration system
 - [x] `--nocolor` option for `output` command
 - [x] `--minify` option for `enviroment` command
 
