@@ -59,6 +59,11 @@ None of these options take arguments and they are **order-sensitive**!
 | -e | --end | date and time when the command ended execution
 | -d | --duration | duration of command execution in seconds
 
+The date and time are printed in the format `dd MMM YYYY hh:mm:ss`
+according to Nim's standard library [specification](https://nim-lang.org/docs/times.html). As soon as the configuration
+system is ready, you will be able to specify the format in it, so please look
+forward to it! :)
+
 ### filtering
 All filtering commands require arguments.
 
@@ -68,12 +73,16 @@ All filtering commands require arguments.
 | -t | --till | date/time | only show command
 | -s | --session | session id | only show commands ran during [session]
 
+date/time for `--from` and `--till` options must be in the format
+`yyyy-M-d-h:m:s` according to Nim's standard library
+[specification](https://nim-lang.org/docs/times.html). There is a plan for making this more flexible in the future
+so that it accepts a multitude of formats.
+
 There is also an option to strip colors. It accepts no arguments:
 
 | Short | Long | Meaning
 |-------|------|----------
 | -n | --nocolor | strips the output free of ascii color escape sequences
-
 
 ## `output`
 Takes 3 mandatory arguments: user, session id, command index (collectively they
@@ -113,7 +122,7 @@ session.
 
 ## Not implemented yet
 - [ ] Configuration system
-- [ ] Flexible input for `-from` and `-till` options of `print`
+- [ ] Flexible input for `--from` and `--till` options of `print`
 - [x] `--nocolor` option for `output` command
 - [x] `--minify` option for `enviroment` command
 
