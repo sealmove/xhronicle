@@ -34,7 +34,7 @@ json files or producing traditional history log files**.
 
 ## What exactly does xhronicle do?
 Xhronicle is a simple cli with the following subcommands:
-- print [-u] [-i] [-r] [-b] [-e] [d]
+- print [-u] [-i] [-r] [-b] [-e] [-d] [-f \<date/time\>] [-t \<date/time\>] [-s \<session id\>] 
 - output \<session id\> \<command index\> [--nocolor]
 - enviroment \<session id\> [--minify]
 - timestamps \<session id\>
