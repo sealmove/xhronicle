@@ -35,8 +35,8 @@ json files or producing traditional history log files**.
 ## What exactly does xhronicle do?
 Xhronicle is a simple cli with the following 3 subcommands:
 - print [-u] [-i] [-r] [-t] [-s] [since] [until]
-- output \<session id\> \<command index\> [--stripcolors]
-- enviroment \<session id\> [--json]
+- output \<session id\> \<command index\> [--nocolor]
+- enviroment \<session id\> [--minify]
 
 You don't have to type the whole subcommand. For example `xhronicle p`,
 `xhronicle pri` and `xhronicle print` are all equivelant.
@@ -82,7 +82,7 @@ stderr (by the command) when it was executed.
 
 ## `enviroment`
 Takes 2 mandatory argument: user, session id; and prints the *initial* enviroment
-variables of the corresponding session.
+of the corresponding session in prettified json.
 
 ## `timestamps`
 Takes 2 mandatory argument: user, session id; and prints the timestamps of the
@@ -98,6 +98,12 @@ session.
 	- Colors
 	- Timedate format
 	- Duration format
+
+## Not implemented yet
+- [ ] Configuration system
+- [ ] Flexible input for `-from` and `-till` options of `print`
+- [ ] `--nocolor` option for `output` command
+- [ ] `--minify` option for `enviroment` command
 
 ## Notes
 The program will obviously print commands according to the privilege of the
