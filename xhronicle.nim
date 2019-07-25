@@ -258,7 +258,8 @@ if "print".startsWith(paramStr(1)):
         let filePath = entry.path / "xonsh-" & optConfig.session.sid & ".json"
         sessions.add((entry.name, parseFile(filePath)["data"]))
       except:
-        discard # XXX: log error
+        echo "The provided session id for filtering didn't check out (-s flag)"
+        quit QuitFailure
     else:
       for filePath in walkFiles(entry.path / "*.json"):
         try:
