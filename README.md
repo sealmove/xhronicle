@@ -160,6 +160,7 @@ case (for example `lightBlue`) to get a lighter hue.
 - [ ] Better error messages
 - [ ] Custom duration format
 - [ ] Flexible input for `--from` and `--till` options of `print`
+- [ ] Print enviroment variables specific to a command (hard to implement)
 - [x] Colored output for `print`
 - [x] Configuration system
 - [x] `--nocolor` option for `output` command
