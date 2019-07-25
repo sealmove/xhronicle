@@ -156,11 +156,11 @@ case (for example `lightBlue`) to get a lighter hue.
 * Compile (`nim c -d:release -o:xhronicle xhronicle.nim`) 
 
 ## Roadmap
-- [ ] A help subcommand
 - [ ] Better error messages
 - [ ] Custom duration format
 - [ ] Flexible input for `--from` and `--till` options of `print`
 - [ ] Print enviroment variables specific to a command (hard to implement)
+- [x] A help command
 - [x] Colored output for `print`
 - [x] Configuration system
 - [x] `--nocolor` option for `output` command
