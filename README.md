@@ -136,9 +136,9 @@ print: "dd MMM YYYY hh:mm:ss"
 parse: "yyyy-M-d-h:m:s"
 
 [Colors]
-separator: light yellow
+separator: lightYellow
 user: green
-sessionid: light green
+sessionid: lightGreen
 commandindex: cyan
 returncode: magenta
 begin: yellow
