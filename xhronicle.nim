@@ -6,15 +6,41 @@ type CmdInfo = tuple
   ts: float
   sidx, cidx: int
 
+const defaultColor = "\e[39m"
+
 var
   xonfig = getConfigDir() / "xhronicle" / "config"
   currSection: string
   users: seq[tuple[name, path: string]]
   printTimeFormat, parseTimeFormat, printSeparator: string
+  colors: tuple[s, u, i, x, r, b, e, d: string]
   sessions: seq[tuple[user: string, data: JsonNode]]
   commands: seq[CmdInfo]
 
 if existsFile(xonfig):
+  proc getColor(c: string): string =
+    let code = case c
+               of "black": 30
+               of "red": 31
+               of "lightRed": 91
+               of "green": 32
+               of "lightGreen": 92
+               of "yellow": 33
+               of "lightYellow": 93
+               of "blue": 34
+               of "lightBlue": 94
+               of "magenta": 35
+               of "lightMagenta": 95
+               of "cyan": 36
+               of "lightCyan": 96
+               of "gray": 90
+               of "lightGray": 37
+               of "white": 97
+               else:
+                 echo "Unknown color"
+                 echo c
+                 quit QuitFailure
+    result = &"\e[{code}m"
   var
     f = newFileStream(xonfig, fmRead)
     p: CfgParser
@@ -45,6 +71,27 @@ if existsFile(xonfig):
         else:
           echo "Unknown config option"
           quit QuitFailure
+      of "Colors":
+        case e.key
+        of "separator":
+          colors.s = getColor(e.value)
+        of "user":
+          colors.u = getColor(e.value)
+        of "sessionid":
+          colors.i = getColor(e.value)
+        of "commandindex":
+          colors.x = getColor(e.value)
+        of "returncode":
+          colors.r = getColor(e.value)
+        of "begin":
+          colors.b = getColor(e.value)
+        of "end":
+          colors.e = getColor(e.value)
+        of "duration":
+          colors.d = getColor(e.value)
+        else:
+          echo "Unknown color option"
+          quit QuitFailure
       else:
         echo "Unknown config section"
         quit QuitFailure
@@ -58,6 +105,16 @@ else:
   users.add((getEnv("USER"), getHomeDir() / ".local/share/xonsh"))
   printTimeFormat = "dd MMM YYYY hh:mm:ss"
   parseTimeFormat = "yyyy-M-d-h:m:s"
+  colors.s = "\e[39m"
+  colors.u = "\e[39m"
+  colors.i = "\e[39m"
+  colors.x = "\e[39m"
+  colors.r = "\e[39m"
+  colors.b = "\e[39m"
+  colors.e = "\e[39m"
+  colors.d = "\e[39m"
+
+printSeparator = colors.s & printSeparator & defaultColor
 
 proc initTime(time: JsonNode): Time =
   let (sec, nanosec) = splitDecimal(getFloat(time))
@@ -224,22 +281,27 @@ if "print".startsWith(paramStr(1)):
     for p in optConfig.print:
       case p.option
       of poUser:
-        str &= lookup(cmd.sidx, cmd.cidx, fkUser).strVal & printSeparator
+        str &= colors.u & $lookup(cmd.sidx, cmd.cidx, fkUser).strVal &
+          defaultColor & printSeparator
       of poId:
-        str &= lookup(cmd.sidx, cmd.cidx, fkId).strVal & "[" &
-          &"{cmd.cidx:03}" & "]" & printSeparator
+        str &= colors.i & $lookup(cmd.sidx, cmd.cidx, fkId).strVal &
+          defaultColor & "[" & colors.x & &"{cmd.cidx:03}" & defaultColor &
+          "]" & printSeparator
       of poRtn:
-        str &= $lookup(cmd.sidx, cmd.cidx, fkRtn).intVal & printSeparator
+        let rtn = lookup(cmd.sidx, cmd.cidx, fkRtn).intVal
+        str &= colors.r & &"{rtn:3}" &
+          defaultColor & printSeparator
       of poBeg:
         let beg = lookup(cmd.sidx, cmd.cidx, fkBeg).time
-        str &= beg.format(printTimeFormat) & printSeparator
+        str &= colors.b & beg.format(printTimeFormat) & defaultColor &
+          printSeparator
       of poEnd:
         let endd = lookup(cmd.sidx, cmd.cidx, fkEnd).time
-        str &= endd.format(printTimeFormat) & printSeparator
+        str &= colors.e & endd.format(printTimeFormat) & defaultColor &
+          printSeparator
       of poDur:
-        let
-          dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
-        str &= &"{dur:>7.2f}" & "s" & printSeparator
+        let dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
+        str &= colors.d & &"{dur:>8.2f}" & defaultColor & "s" & printSeparator
     if optConfig.strip:
       str = str.replace(re"\x1b\[[0-9;]*m")
     stdout.write(str & lookup(cmd.sidx, cmd.cidx, fkInp).strVal)

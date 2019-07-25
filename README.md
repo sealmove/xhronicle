@@ -125,16 +125,30 @@ A simple `.ini`-like format is used according to [this specification](https://ni
 Example:
 ``` ini
 [Users]
-root = "/root/.local/share/xonsh"
-sealmove = "/home/sealmove/.local/share/xonsh"
+root: "/root/.local/share/xonsh"
+sealmove: "/home/sealmove/.local/share/xonsh"
 
 [PrintFormat]
-separator = "\t"
+separator: "\t"
 
 [TimeFormat]
-print = "dd MMM YYYY hh:mm:ss"
-parse = "yyyy-M-d-h:m:s"
+print: "dd MMM YYYY hh:mm:ss"
+parse: "yyyy-M-d-h:m:s"
+
+[Colors]
+separator: light yellow
+user: green
+sessionid: light green
+commandindex: cyan
+returncode: magenta
+begin: yellow
+end: light yellow
+duration: red
 ```
+
+Valid colors are: black, white, red, green, yellow, blue, magenta, cyan, gray.
+You can prefix any of them (except black and white) with `light` and use camel
+case (for example `lightBlue`) to get a lighter hue.
 
 ## How to generate binary
 * Clone
@@ -144,9 +158,9 @@ parse = "yyyy-M-d-h:m:s"
 ## Roadmap
 - [ ] A help subcommand
 - [ ] Better error messages
-- [ ] Colored output for `print`
 - [ ] Custom duration format
 - [ ] Flexible input for `--from` and `--till` options of `print`
+- [x] Colored output for `print`
 - [x] Configuration system
 - [x] `--nocolor` option for `output` command
 - [x] `--minify` option for `enviroment` command
