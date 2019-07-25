@@ -142,7 +142,7 @@ sessionid: lightGreen
 commandindex: cyan
 returncode: magenta
 begin: yellow
-end: light yellow
+end: lightYellow
 duration: red
 ```
 
