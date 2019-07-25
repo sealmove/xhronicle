@@ -129,7 +129,7 @@ root: "/root/.local/share/xonsh"
 sealmove: "/home/sealmove/.local/share/xonsh"
 
 [PrintFormat]
-separator: "\t"
+separator: " | "
 
 [TimeFormat]
 print: "dd MMM YYYY hh:mm:ss"
