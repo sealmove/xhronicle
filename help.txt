@@ -1,0 +1,34 @@
+print
+  Description:
+    Prints a log file. If no option is provided, then only the commands
+    are printed in precise chronological order, one line each. With options
+    you can print more information in the line or filter commands. It takes
+    no arguments.
+  Options:
+    --user
+    --id
+    --returncode
+    --begin
+    --end
+    --duration
+    --from <date/time>
+    --till <date/time>
+    --session <session id>
+    --nocolor
+
+output <user> <session id> <command index>
+  Description:
+    Prints what was written to stdout and stderr by the command when it was
+    executed.
+  Options:
+    --nocolor
+
+enviroment <user> <session id>
+  Description:
+    Prints the initial enviroment of the corresponding session in json.
+  Options:
+    --minify
+
+timestamps <user> <session id>
+  Description:
+    Prints the timestamps of the session

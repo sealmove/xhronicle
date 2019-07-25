@@ -427,6 +427,9 @@ elif "timestamps".startsWith(paramStr(1)):
   str &= &"({dur:.2f}" & "s)" & printSeparator
   echo str
 
+elif "help".startsWith(paramStr(1)):
+  echo readFile("help.txt")
+
 else:
   echo "Command not found"
   quit QuitFailure

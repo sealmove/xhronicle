@@ -109,9 +109,9 @@ Takes 2 mandatory argument: user, session id; and prints the timestamps of the
 session.
 
 ## Configuration
-**The file path must be `$XDG_CONFIG_HOME/.config/xhronicle/config`.
+The file path must be `$XDG_CONFIG_HOME/.config/xhronicle/config`.
 <br/>
-If `$XDG_CONFIG_HOME` is not set, it defaults to `~/.config/`.**
+If `$XDG_CONFIG_HOME` is not set, it defaults to `~/.config/`.
 
 A simple configuration file is needed to specify the following:
 - Users' names and corresponding paths to the xonsh history directory
