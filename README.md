@@ -111,7 +111,7 @@ session.
 ## Configuration
 **The file path must be `$XDG_CONFIG_HOME/.config/xhronicle/config`.
 <br/>
-If $XDG_CONFIG_HOME is not set, it defaults to `~/.config/`.**
+If `$XDG_CONFIG_HOME` is not set, it defaults to `~/.config/`.**
 
 A simple configuration file is needed to specify the following:
 - Users' names and corresponding paths to the xonsh history directory
@@ -127,8 +127,11 @@ Example:
 [Users]
 root = "/root/.local/share/xonsh"
 sealmove = "/home/sealmove/.local/share/xonsh"
- 
-[Time Format]
+
+[PrintFormat]
+separator = "\t"
+
+[TimeFormat]
 print = "dd MMM YYYY hh:mm:ss"
 parse = "yyyy-M-d-h:m:s"
 ```

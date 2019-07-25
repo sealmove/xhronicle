@@ -10,7 +10,7 @@ var
   xonfig = getConfigDir() / "xhronicle" / "config"
   currSection: string
   users: seq[tuple[name, path: string]]
-  printTimeFormat, parseTimeFormat: string
+  printTimeFormat, parseTimeFormat, printSeparator: string
   sessions: seq[tuple[user: string, data: JsonNode]]
   commands: seq[CmdInfo]
 
@@ -25,12 +25,18 @@ if existsFile(xonfig):
     of cfgEof: break
     of cfgSectionStart:
       currSection = e.section
-      echo("new section: " & e.section)
     of cfgKeyValuePair:
       case currSection
       of "Users":
         users.add((e.key, e.value))
-      of "Time Format":
+      of "PrintFormat":
+        case e.key
+        of "separator":
+          printSeparator = e.value
+        else:
+          echo "Unknown config option"
+          quit QuitFailure
+      of "TimeFormat":
         case e.key
         of "print":
           printTimeFormat = e.value
@@ -42,9 +48,8 @@ if existsFile(xonfig):
       else:
         echo "Unknown config section"
         quit QuitFailure
-      echo("key-value-pair: " & e.key & ": " & e.value)
     of cfgOption:
-      echo("command: " & e.key & ": " & e.value)
+      discard
     of cfgError:
       echo(e.msg)
   close(p)
@@ -219,22 +224,22 @@ if "print".startsWith(paramStr(1)):
     for p in optConfig.print:
       case p.option
       of poUser:
-        str &= lookup(cmd.sidx, cmd.cidx, fkUser).strVal & "\t"
+        str &= lookup(cmd.sidx, cmd.cidx, fkUser).strVal & printSeparator
       of poId:
         str &= lookup(cmd.sidx, cmd.cidx, fkId).strVal & "[" &
-          &"{cmd.cidx:03}" & "]\t"
+          &"{cmd.cidx:03}" & "]" & printSeparator
       of poRtn:
-        str &= $lookup(cmd.sidx, cmd.cidx, fkRtn).intVal & "\t"
+        str &= $lookup(cmd.sidx, cmd.cidx, fkRtn).intVal & printSeparator
       of poBeg:
         let beg = lookup(cmd.sidx, cmd.cidx, fkBeg).time
-        str &= beg.format(printTimeFormat) & "\t"
+        str &= beg.format(printTimeFormat) & printSeparator
       of poEnd:
         let endd = lookup(cmd.sidx, cmd.cidx, fkEnd).time
-        str &= endd.format(printTimeFormat) & "\t"
+        str &= endd.format(printTimeFormat) & printSeparator
       of poDur:
         let
           dur = lookup(cmd.sidx, cmd.cidx, fkDur).duration
-        str &= &"{dur:>7.2f}" & "s\t"
+        str &= &"{dur:>7.2f}" & "s" & printSeparator
     if optConfig.strip:
       str = str.replace(re"\x1b\[[0-9;]*m")
     stdout.write(str & lookup(cmd.sidx, cmd.cidx, fkInp).strVal)
@@ -354,9 +359,9 @@ elif "timestamps".startsWith(paramStr(1)):
     endd = initTime(ts[1])
     dur = getFloat(ts[1]) - getFloat(ts[0])
   var str: string
-  str &= beg.format(printTimeFormat) & "\t"
-  str &= endd.format(printTimeFormat) & "\t"
-  str &= &"({dur:.2f}" & "s)\t"
+  str &= beg.format(printTimeFormat) & printSeparator
+  str &= endd.format(printTimeFormat) & printSeparator
+  str &= &"({dur:.2f}" & "s)" & printSeparator
   echo str
 
 else:
