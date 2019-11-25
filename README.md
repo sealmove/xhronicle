@@ -1,4 +1,4 @@
-# xhronicle: a xonsh history frontend
+# xhronicle
 
 ## What is xonsh?
 Xonsh is a relatively new shell (2016) and it's amazing in many ways. First and
